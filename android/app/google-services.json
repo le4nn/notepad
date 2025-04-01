@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "249399801748",
+    "firebase_url": "https://notes-2737e-default-rtdb.firebaseio.com",
+    "project_id": "notes-2737e",
+    "storage_bucket": "notes-2737e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:249399801748:android:0f92a2e88524be42c50181",
+        "android_client_info": {
+          "package_name": "com.example.notes"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAq3cjZSxaSsRQrh2X9n1L7yHWlcpeLcqw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
