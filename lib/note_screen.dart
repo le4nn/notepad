@@ -1,9 +1,5 @@
-import 'dart:convert';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:firebase_database/firebase_database.dart';
 import 'about_screen.dart';
 
 class NotesScreen extends StatefulWidget {
@@ -16,26 +12,35 @@ class NotesScreen extends StatefulWidget {
 class _NotesScreenState extends State<NotesScreen> {
   List<String> notes = [];
   final TextEditingController _controller = TextEditingController();
+  late DatabaseReference _notesRef;
 
   @override
   void initState() {
     super.initState();
+    _notesRef = FirebaseDatabase.instance.ref('notes');
     _loadNotes();
   }
 
   Future<void> _loadNotes() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? notesString = prefs.getString('notes');
-    if (notesString != null) {
-      setState(() {
-        notes = List<String>.from(jsonDecode(notesString));
-      });
+    try {
+      final snapshot = await _notesRef.get();
+      if (snapshot.exists) {
+        setState(() {
+          final data = snapshot.value as List<dynamic>?;
+          notes = data?.map((e) => e.toString()).toList() ?? [];
+        });
+      }
+    } catch (e) {
+      print('Error loading notes: $e');
     }
   }
 
   Future<void> _saveNotes() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('notes', jsonEncode(notes));
+    try {
+      await _notesRef.set(notes);
+    } catch (e) {
+      print('Error saving notes: $e');
+    }
   }
 
   void _addNote() {
@@ -58,26 +63,25 @@ class _NotesScreenState extends State<NotesScreen> {
   void _editNote(int index) {
     _controller.text = notes[index];
     showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-              title: const Text('Редактировать заметку'),
-              content: TextField(controller: _controller),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      notes[index] = _controller.text;
-                      _controller.clear();
-                    });
-                    _saveNotes();
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Сохранить'),
-                )]);
-        });
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Редактировать заметку'),
+          content: TextField(controller: _controller),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  notes[index] = _controller.text;
+                  _controller.clear();
+                });
+                _saveNotes();
+                Navigator.pop(context);
+              },
+              child: const Text('Сохранить'),
+            )]);
+      });
   }
-
 
   void _goToAboutPage() {
     Navigator.push(
@@ -89,48 +93,47 @@ class _NotesScreenState extends State<NotesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-            title: const Text('Заметки'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.info),
-                onPressed: _goToAboutPage,
-                tooltip: 'О приложении',
-              )]),
-        body: Column(
-            children: [
-              Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                      children: [
-                        Expanded(
-                            child: TextField(
-                                controller: _controller,
-                                decoration: const InputDecoration(
-                                  hintText: 'Введите заметку',
-                                ))),
-                        IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: _addNote,
-                        )])),
-              Expanded(
-                  child: ListView.builder(
-                    itemCount: notes.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                          title: Text(notes[index]),
-                          trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit),
-                                  onPressed: () => _editNote(index),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete),
-                                  onPressed: () => _deleteNote(index),
-                                )]));
-                    },
-                  ))]));
+      appBar: AppBar(
+        title: const Text('Заметки'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info),
+            onPressed: _goToAboutPage,
+          )]),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: const InputDecoration(
+                      hintText: 'Введите заметку',
+                    ))),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: _addNote,
+                )])),
+          Expanded(
+            child: ListView.builder(
+              itemCount: notes.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(notes[index]),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () => _editNote(index),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () => _deleteNote(index),
+                      )]));
+              },
+            ))]));
   }
 }
