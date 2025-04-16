@@ -8,21 +8,20 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  runApp(const NotesApp());
+  runApp(const AppointmentApp());
 }
 
-class NotesApp extends StatelessWidget {
-  const NotesApp({super.key});
+class AppointmentApp extends StatelessWidget {
+  const AppointmentApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Заметки',
+      title: 'Запись к врачу',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const NotesScreen(),
+      home: const AppointmentsScreen(),
     );
   }
 }
